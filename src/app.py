@@ -1,6 +1,7 @@
 import streamlit as st
 from job_tracker import init_db, add_application, get_applications
 from ai_generator import generate_tailored_bullet_points
+from pdf_generator import generate_pdf
 
 # Initialize database
 init_db()
@@ -18,10 +19,22 @@ with tab1:
         if job_desc and raw_exp:
             with st.spinner("Generating tailored bullet points..."):
                 result = generate_tailored_bullet_points(job_desc, raw_exp)
-                st.subheader("Optimized Resume Bullet Points:")
-                st.write(result)
+                st.session_state['tailored_result'] = result
         else:
             st.warning("Please fill in both fields.")
+            
+    if 'tailored_result' in st.session_state:
+        st.subheader("Optimized Resume Bullet Points:")
+        st.write(st.session_state['tailored_result'])
+        
+        # PDF Generation & Download
+        pdf_buffer = generate_pdf(st.session_state['tailored_result'])
+        st.download_button(
+            label="📥 Download Resume Bullet Points as PDF",
+            data=pdf_buffer,
+            file_name="tailored_resume_bullet_points.pdf",
+            mime="application/pdf"
+        )
 
 with tab2:
     st.header("Job Application Tracker")
